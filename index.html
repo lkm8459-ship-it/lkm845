@@ -46,43 +46,51 @@
             bottom: 20px;
             left: 50%;
             transform: translateX(-50%);
-            width: calc(100% - 40px);
-            max-width: 400px;
+            width: calc(100% - 30px);
+            max-width: 420px;
             background: rgba(255, 255, 255, 0.08);
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
             border: 1px solid var(--border);
             border-radius: 20px;
-            padding: 12px 18px;
+            padding: 10px 14px;
             display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
             z-index: 1000;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .timer-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            justify-content: center;
         }
 
         .timer-display {
             font-family: 'Outfit', sans-serif;
             font-weight: 800;
-            font-size: 2rem;
+            font-size: 1.8rem;
             color: var(--blue);
-            min-width: 100px;
-        }
-
-        .timer-controls {
-            display: flex;
-            gap: 10px;
+            min-width: 75px;
+            text-align: center;
         }
 
         .timer-btn {
             background: rgba(255, 255, 255, 0.05);
             border: 1px solid var(--border);
             color: var(--text1);
-            padding: 10px 18px;
-            border-radius: 12px;
-            font-size: 0.95rem;
+            padding: 8px 14px;
+            border-radius: 10px;
+            font-size: 0.82rem;
             font-weight: 600;
             cursor: pointer;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
         .timer-btn.start {
@@ -504,6 +512,52 @@
                 --dot-font: 1.3rem;
             }
         }
+
+        /* Final Action Button at bottom of page */
+        .page-footer {
+            margin-top: 30px;
+            padding: 0 15px 40px;
+            text-align: center;
+        }
+
+        .final-btn {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+            background: linear-gradient(45deg, #FF6B35, #FFB88C, #FF6B35);
+            background-size: 200% auto;
+            border: none;
+            border-radius: 24px;
+            color: #fff;
+            font-size: 1.4rem;
+            font-weight: 900;
+            letter-spacing: 1px;
+            cursor: pointer;
+            box-shadow: 0 10px 30px rgba(255, 107, 53, 0.4);
+            transition: all 0.3s ease;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .final-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 5px 15px rgba(255, 107, 53, 0.3);
+        }
     </style>
 </head>
 
@@ -514,9 +568,9 @@
         <p>Premium Personal Workout Tracker</p>
     </div>
 
-    <div class="alert">
-        <div class="icon">🎓</div>
-        <div class="txt"><b>척추 보호 모드 ON</b> — 편측성 운동 시 짧은 다리부터 시작. 골반 수평 유지.</div>
+    <div class="alert" id="dailyTip">
+        <div class="icon" id="tipIcon">💪</div>
+        <div class="txt" id="tipText"><b>오늘의 팁</b> — 로딩 중...</div>
     </div>
 
     <div class="tab-bar" id="tabBar">
@@ -660,6 +714,10 @@
             <h4>🏃 인터벌 러닝 (20~30분)</h4>
             <p>1분 질주 + 2분 조깅 x 7~10회. 미드풋 착지로 척추 보호.</p>
         </div>
+
+        <div class="page-footer">
+            <button class="final-btn" onclick="copyReport()">✨ 오운완!! ✨</button>
+        </div>
     </div>
 
     <!-- ========== TUESDAY ========== -->
@@ -760,11 +818,11 @@
         <div class="ex" style="border-left:3px solid var(--orange)">
             <div class="ex-top">
                 <div><span class="ex-label" style="background:rgba(255,107,53,0.15);color:var(--orange)">스트레칭 3</span>
-                    <div class="ex-name">고양이-소 스트레칭 (Cat-Cow)</div>
-                    <div class="ex-target">전체 척추 가동성 확보</div>
+                    <div class="ex-name">앉아서 가슴 펴기 (손 깍지)</div>
+                    <div class="ex-target">말린 어깨 & 굽은 등 교정</div>
                 </div>
                 <div class="ex-stats">
-                    <div class="ex-sets" style="color:var(--orange)">3 x 10회</div>
+                    <div class="ex-sets" style="color:var(--orange)">3 x 30초</div>
                     <div class="ex-rest">휴식 15초</div>
                 </div>
             </div>
@@ -773,12 +831,16 @@
                 <div class="dot" onclick="tog(this)">2</div>
                 <div class="dot" onclick="tog(this)">3</div>
             </div>
-            <div class="tip"><b>💡 초보 팁:</b> 네발 기기 자세에서 등을 둥글게(고양이) → 배를 아래로(소). 호흡에 맞춰 천천히!</div>
+            <div class="tip"><b>💡 팁:</b> 양손을 뒤로 깍지 끼고 가슴을 앞으로 쭉 내미세요. 매트에 앉아서 아주 얌전하게 할 수 있습니다.</div>
         </div>
 
         <div class="cardio">
             <h4>🚴 실내 자전거 (30분)</h4>
             <p>일정 저항(Lv 5~7), 70~80 RPM. 상체 세워 척추 부담 줄이기.</p>
+        </div>
+
+        <div class="page-footer">
+            <button class="final-btn" onclick="copyReport()">✨ 오운완!! ✨</button>
         </div>
     </div>
 
@@ -826,7 +888,7 @@
                 <div class="dot" onclick="tog(this)">4</div>
                 <div class="dot" onclick="tog(this)">5</div>
             </div>
-            <div class="tip"><b>💪 트레이너:</b> 허리를 패드에 밀착. 척추 하중 최소화.</div>
+            <div class="tip"><b>👴 트레이너:</b> 허리를 패드에 밀착. 척추 하중 최소화.</div>
         </div>
 
         <div class="ss-group">
@@ -914,6 +976,10 @@
             <h4>🪜 천국의 계단 (20~30분)</h4>
             <p>일정 속도 유지. 손잡이 잡지 말고 둔근 힘으로 중심 잡기.</p>
         </div>
+
+        <div class="page-footer">
+            <button class="final-btn" onclick="copyReport()">✨ 오운완!! ✨</button>
+        </div>
     </div>
 
     <!-- ========== THURSDAY ========== -->
@@ -945,11 +1011,11 @@
         <div class="ex" style="border-left:3px solid var(--purple)">
             <div class="ex-top">
                 <div><span class="ex-label" style="background:rgba(188,19,254,0.15);color:var(--purple)">코어 2</span>
-                    <div class="ex-name">버드독 (Bird-Dog)</div>
-                    <div class="ex-target">후면 사슬 강화</div>
+                    <div class="ex-name">스탠딩 니업 (Standing Knee Up)</div>
+                    <div class="ex-target">서서 하는 하부 복근 & 균형</div>
                 </div>
                 <div class="ex-stats">
-                    <div class="ex-sets" style="color:var(--purple)">3 x 10회(양쪽)</div>
+                    <div class="ex-sets" style="color:var(--purple)">3 x 15회</div>
                     <div class="ex-rest">휴식 30초</div>
                 </div>
             </div>
@@ -958,9 +1024,7 @@
                 <div class="dot" onclick="tog(this)">2</div>
                 <div class="dot" onclick="tog(this)">3</div>
             </div>
-            <div style="margin-top:8px"><a class="yt-link"
-                    href="https://www.youtube.com/results?search_query=%EB%B2%84%EB%93%9C%EB%8F%85+%EC%BD%94%EC%96%B4+%EC%9A%B4%EB%8F%99+%EC%9E%90%EC%84%B8"
-                    target="_blank">▶ 버드독 자세 교정법</a></div>
+            <div class="tip"><b>💡 팁:</b> 제자리에서 무릎을 높이 들어 올립니다. 배에 힘을 꽉 주고 버티세요!</div>
         </div>
 
         <div class="ex" style="border-left:3px solid var(--orange)">
@@ -1005,11 +1069,11 @@
         <div class="ex" style="border-left:3px solid var(--orange)">
             <div class="ex-top">
                 <div><span class="ex-label" style="background:rgba(255,107,53,0.15);color:var(--orange)">스트레칭 3</span>
-                    <div class="ex-name">장요근 런지 스트레칭</div>
-                    <div class="ex-target">다리 길이 불균형 완화</div>
+                    <div class="ex-name">스탠딩 쿼드 스트레칭</div>
+                    <div class="ex-target">허벅지 앞쪽 이완 & 골반 정렬</div>
                 </div>
                 <div class="ex-stats">
-                    <div class="ex-sets" style="color:var(--orange)">3 x 30초(양쪽)</div>
+                    <div class="ex-sets" style="color:var(--orange)">3 x 20초</div>
                     <div class="ex-rest">휴식 15초</div>
                 </div>
             </div>
@@ -1018,12 +1082,16 @@
                 <div class="dot" onclick="tog(this)">2</div>
                 <div class="dot" onclick="tog(this)">3</div>
             </div>
-            <div class="tip"><b>💡 초보 팁:</b> 뒷다리 무릎 바닥, 앞다리 90도. 골반을 조금 앞으로 밀면 장요근이 쭉 늘어납니다.</div>
+            <div class="tip"><b>💡 팁:</b> 서서 한쪽 발등을 잡고 엉덩이 쪽으로 당겨주세요. 깔끔하고 얌전한 동작입니다.</div>
         </div>
 
         <div class="cardio">
             <h4>🚶 경사로 걷기 (30분)</h4>
             <p>경사 5~10, 속도 4.5~5.0km/h. 11자 걸음 의식.</p>
+        </div>
+
+        <div class="page-footer">
+            <button class="final-btn" onclick="copyReport()">✨ 오운완!! ✨</button>
         </div>
     </div>
 
@@ -1158,6 +1226,10 @@
             <h4>🏃 인터벌 러닝 (20~30분)</h4>
             <p>한 주의 마지막 에너지를 쏟으세요! 불금 오운완!</p>
         </div>
+
+        <div class="page-footer">
+            <button class="final-btn" onclick="copyReport()">✨ 오운완!! ✨</button>
+        </div>
     </div>
 
     <!-- ========== SATURDAY ========== -->
@@ -1171,7 +1243,7 @@
                 <p>자전거, 등산, 배드민턴 등 자유롭게 즐기세요.</p>
             </div>
         </div>
-        <div class="tip" style="margin-top:15px"><b>💪 트레이너:</b> 억지로 하지 마세요. 즐거운 움직임이 최고의 회복입니다.</div>
+        <div class="tip" style="margin-top:15px"><b>👴 트레이너:</b> 억지로 하지 마세요. 즐거운 움직임이 최고의 회복입니다.</div>
     </div>
 
     <!-- ========== SUNDAY ========== -->
@@ -1190,17 +1262,38 @@
 
     <!-- ========== FLOATING TIMER (body 직속 - 항상 보임) ========== -->
     <div class="timer-bar" id="timerBar">
-        <div class="timer-display" id="timerDisplay">00:00</div>
-        <div class="timer-controls">
-            <button class="timer-btn report" onclick="copyReport()">REPORT</button>
+        <div class="timer-row">
+            <div class="timer-display" id="timerDisplay">00:00</div>
             <button class="timer-btn preset" onclick="setTimer(60)">60s</button>
             <button class="timer-btn preset" onclick="setTimer(90)">90s</button>
-            <button class="timer-btn start" id="timerStart" onclick="toggleTimer()">시작</button>
+        </div>
+        <div class="timer-row" style="gap: 15px;">
+            <button class="timer-btn start" id="timerStart" onclick="startTimer()">시작</button>
+            <button class="timer-btn stop" id="timerStop" onclick="stopTimer()" style="color: #ff4444;">중지</button>
             <button class="timer-btn reset" onclick="resetTimer()">초기화</button>
         </div>
     </div>
 
     <script>
+        // Daily Tips per day
+        const dailyTips = {
+            mon: { icon: '💪', title: '상체 폭발의 날!', msg: '견갑 패킹에 집중하고, 턱걸이 20개를 향해 전진!' },
+            tue: { icon: '🧘', title: '회복이 곧 성장', msg: '천천히 호흡하며 코어를 깨워주세요.' },
+            wed: { icon: '🦵', title: '골반 수평 유지!', msg: '짧은 다리부터 시작. 편측성 운동에 집중!' },
+            thu: { icon: '🧘', title: '통증 없는 범위에서', msg: '무리하지 말고, 호흡과 함께 이완하세요.' },
+            fri: { icon: '🔥', title: '불금 오운완!', msg: '한 주의 마지막 에너지를 모두 쏟으세요!' },
+            sat: { icon: '🏞️', title: '자유로운 하루', msg: '즐거운 움직임이 최고의 회복입니다.' },
+            sun: { icon: '😴', title: '완벽한 휴식', msg: '단백질 챙기고 푹 주무세요. 내일을 위해!' }
+        };
+
+        function updateDailyTip(day) {
+            const tip = dailyTips[day];
+            if (tip) {
+                document.getElementById('tipIcon').textContent = tip.icon;
+                document.getElementById('tipText').innerHTML = '<b>' + tip.title + '</b> — ' + tip.msg;
+            }
+        }
+
         // Tab switching with event delegation
         document.getElementById('tabBar').addEventListener('click', function (e) {
             var btn = e.target.closest('button');
@@ -1212,6 +1305,8 @@
             // Activate selected
             btn.classList.add('on');
             document.getElementById(day).classList.add('on');
+            // Update daily tip
+            updateDailyTip(day);
             // Scroll tab into view
             btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
             // Save active tab
@@ -1228,6 +1323,10 @@
                 document.querySelector('[data-day="' + saved + '"]').classList.add('on');
             }
         } catch (e) { }
+
+        // Initialize daily tip for current tab
+        var activeDay = document.querySelector('.tab-bar button.on');
+        if (activeDay) updateDailyTip(activeDay.getAttribute('data-day'));
 
         // Set tracker toggle with localStorage persistence
         function tog(el) {
@@ -1260,38 +1359,34 @@
                 (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
         }
 
-        function toggleTimer() {
-            if (isRunning) {
-                clearInterval(timerInterval);
-                document.getElementById('timerStart').innerText = '시작';
-            } else {
-                timerInterval = setInterval(() => {
-                    if (isCountdown) {
-                        seconds--;
-                        if (seconds <= 0) {
-                            clearInterval(timerInterval);
-                            isRunning = false;
-                            document.getElementById('timerStart').innerText = '시작';
-                            document.getElementById('timerBar').classList.add('alarm');
-                            setTimeout(() => document.getElementById('timerBar').classList.remove('alarm'), 5000);
-                        }
-                    } else {
-                        seconds++;
-                    }
-                    updateDisplay();
-                }, 1000);
-                document.getElementById('timerStart').innerText = '중단';
-            }
-            isRunning = !isRunning;
+        function startTimer() {
+            if (isRunning) return;
+            isRunning = true;
             document.getElementById('timerBar').classList.remove('alarm');
+            timerInterval = setInterval(() => {
+                if (isCountdown) {
+                    seconds--;
+                    if (seconds <= 0) {
+                        stopTimer();
+                        document.getElementById('timerBar').classList.add('alarm');
+                        setTimeout(() => document.getElementById('timerBar').classList.remove('alarm'), 5000);
+                    }
+                } else {
+                    seconds++;
+                }
+                updateDisplay();
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+            isRunning = false;
         }
 
         function resetTimer() {
-            clearInterval(timerInterval);
-            isRunning = false;
+            stopTimer();
             isCountdown = false;
             seconds = 0;
-            document.getElementById('timerStart').innerText = '시작';
             document.getElementById('timerBar').classList.remove('alarm');
             updateDisplay();
         }
@@ -1301,7 +1396,7 @@
             seconds = s;
             isCountdown = true;
             updateDisplay();
-            toggleTimer();
+            startTimer();
         }
 
         function copyReport() {
@@ -1328,10 +1423,14 @@
             report += "\n#오운완 #PEAK7 #독기";
 
             navigator.clipboard.writeText(report).then(() => {
-                const btn = document.querySelector('.timer-btn.report');
+                const btn = document.querySelector('.page.on .final-btn');
                 const originalText = btn.innerText;
-                btn.innerText = "COPIED!";
-                setTimeout(() => btn.innerText = originalText, 2000);
+                btn.innerText = "✅ 기록이 복사되었습니다!";
+                btn.style.background = "var(--green)";
+                setTimeout(() => {
+                    btn.innerText = "✨ 오운완!! ✨";
+                    btn.style.background = "";
+                }, 2000);
             });
         }
 
