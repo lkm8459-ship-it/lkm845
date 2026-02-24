@@ -438,32 +438,32 @@ function copyReport() {
         }
     });
 
-    // 기록 시 종료 상태를 저장하지 않고 타이머 완전 초기화
+    // 1. 타이머 관련 초기화 (타이머가 시작된 경우에만)
     if (sessionStartTime) {
         sessionStartTime = null;
-        clearInterval(mainTimerInterval);
+        if (mainTimerInterval) clearInterval(mainTimerInterval);
         try {
             localStorage.removeItem('wm_session');
             localStorage.removeItem('wm_session_finished');
         } catch (e) { }
         updateMainTimerDisplay(); // 🏋️ 운동 시작으로 돌아감
-
-        // 1. 해당 요일 초록색 체크 초기화
-        const activePage = document.querySelector('.page.on');
-        if (activePage) {
-            activePage.querySelectorAll('.dot.done').forEach(dot => {
-                dot.classList.remove('done');
-                dot.querySelector('.dot-kg')?.remove();
-            });
-        }
-        saveChecks(); // 로컬 스토리지에 체크 상태 해제 반영
-
-        // 2. 턱걸이 기록 초기화 (턱걸이 포함)
-        pullupCount = 0;
-        pullupLog = [];
-        const pullupCountEl = document.getElementById('bigPullupCount');
-        if (pullupCountEl) pullupCountEl.textContent = 0;
-        renderPullupHistory();
-        saveBigPullup(); // 로컬 스토리지에 턱걸이 0 반영
     }
+
+    // 2. 해당 요일 초록색 체크 초기화 (타이머 여부와 상관없이 무조건)
+    const activePage = document.querySelector('.page.on');
+    if (activePage) {
+        activePage.querySelectorAll('.dot.done').forEach(dot => {
+            dot.classList.remove('done');
+            dot.querySelector('.dot-kg')?.remove();
+        });
+    }
+    saveChecks(); // 로컬 스토리지에 체크 상태 해제 반영
+
+    // 3. 턱걸이 기록 초기화 (타이머 여부와 상관없이 무조건)
+    pullupCount = 0;
+    pullupLog = [];
+    const pullupCountEl = document.getElementById('bigPullupCount');
+    if (pullupCountEl) pullupCountEl.textContent = 0;
+    renderPullupHistory();
+    saveBigPullup(); // 로컬 스토리지에 턱걸이 0 반영
 }
