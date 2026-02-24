@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ko">
 
 <head>
@@ -561,35 +561,40 @@
             box-shadow: 0 5px 15px rgba(255, 107, 53, 0.3);
         }
 
-        /* V2: Time Badge */
+        /* V2.2: Workout Timer */
         .time-badge-bar {
             display: flex;
-            gap: 10px;
-            padding: 0 15px 10px;
             justify-content: center;
-            flex-wrap: wrap;
+            padding: 0 15px 15px;
         }
 
-        .time-badge {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 6px 14px;
-            font-size: 0.78rem;
-            color: var(--text2);
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .time-badge .tb-val {
-            color: var(--blue);
-            font-weight: 700;
-            font-size: 0.9rem;
-        }
-
-        .time-badge.elapsed .tb-val {
+        .workout-start-btn {
+            background: rgba(57, 255, 20, 0.15);
+            border: 1px solid rgba(57, 255, 20, 0.3);
+            border-radius: 20px;
+            padding: 12px 24px;
+            font-size: 1.1rem;
+            font-weight: 800;
             color: var(--green);
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(57, 255, 20, 0.2);
+            transition: all 0.2s;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .workout-start-btn.active {
+            background: rgba(0, 210, 255, 0.15);
+            border-color: rgba(0, 210, 255, 0.3);
+            color: #00d2ff;
+            box-shadow: 0 0 15px rgba(0, 210, 255, 0.2);
+        }
+
+        .workout-start-btn.finished {
+            background: rgba(255, 107, 53, 0.15);
+            border-color: rgba(255, 107, 53, 0.3);
+            color: var(--orange);
+            box-shadow: none;
         }
 
         /* V2: Weight Modal */
@@ -1004,11 +1009,9 @@
         <p>Premium Personal Workout Tracker</p>
     </div>
 
-    <!-- V2: Time Badge Bar -->
-    <div class="time-badge-bar">
-        <div class="time-badge">⏰ 현재 <span class="tb-val" id="clockNow">--:--</span></div>
-        <div class="time-badge">🏋️ 시작 <span class="tb-val" id="clockStart">--:--</span></div>
-        <div class="time-badge elapsed">⏱️ 경과 <span class="tb-val" id="clockElapsed">00:00</span></div>
+    <!-- V2.2: Workout Timer -->
+    <div class="time-badge-bar" id="workoutTimerBar">
+        <button class="workout-start-btn" id="workoutStartBtn" onclick="toggleWorkoutTimer()">🏋️ 운동 시작</button>
     </div>
 
     <div class="alert" id="dailyTip">
@@ -1742,43 +1745,90 @@
     <script>
         // ===== V2 STATE =====
         let sessionStartTime = null;
+        let sessionEndTime = null;
+        let mainTimerInterval = null;
         let pullupCount = 0;
         let currentWeightDot = null;
-
-        // Initialize session start time
-        (function initSession() {
-            try {
-                const saved = localStorage.getItem('wm_session');
-                if (saved) {
-                    const data = JSON.parse(saved);
-                    const HOURS_12 = 12 * 60 * 60 * 1000;
-                    if (Date.now() - data.ts < HOURS_12) {
-                        sessionStartTime = new Date(data.ts);
-                    }
-                }
-            } catch (e) { }
-            if (!sessionStartTime) {
-                sessionStartTime = new Date();
-                try { localStorage.setItem('wm_session', JSON.stringify({ ts: sessionStartTime.getTime() })); } catch (e) { }
-            }
-            document.getElementById('clockStart').textContent = formatTime(sessionStartTime);
-        })();
 
         function formatTime(d) {
             return (d.getHours() < 10 ? '0' : '') + d.getHours() + ':' + (d.getMinutes() < 10 ? '0' : '') + d.getMinutes();
         }
 
-        // Live clock + elapsed
-        setInterval(() => {
-            const now = new Date();
-            document.getElementById('clockNow').textContent = formatTime(now);
-            if (sessionStartTime) {
-                const diff = Math.floor((now - sessionStartTime) / 60000);
-                const h = Math.floor(diff / 60);
-                const m = diff % 60;
-                document.getElementById('clockElapsed').textContent = (h > 0 ? h + 'h ' : '') + m + 'm';
+        // V2.2: Workout Timer Button Logic
+        function updateMainTimerDisplay() {
+            const btn = document.getElementById('workoutStartBtn');
+            if (sessionEndTime) {
+                const diff = Math.floor((sessionEndTime - sessionStartTime) / 60000);
+                const st = formatTime(sessionStartTime);
+                const et = formatTime(sessionEndTime);
+                btn.innerHTML = `✅ ${st} ~ ${et} (${diff}분)`;
+                btn.className = 'workout-start-btn finished';
+                return;
             }
-        }, 1000);
+            if (!sessionStartTime) {
+                btn.innerHTML = `🏋️ 운동 시작`;
+                btn.className = 'workout-start-btn';
+                return;
+            }
+            // Running
+            const now = new Date();
+            const diff = Math.floor((now - sessionStartTime) / 60000);
+            const st = formatTime(sessionStartTime);
+
+            const h = Math.floor(diff / 60);
+            const m = diff % 60;
+            let elapsedStr = '';
+            if (h > 0) elapsedStr += h + '시간 ';
+            elapsedStr += m + '분';
+
+            btn.innerHTML = `⏱️ ${st} ~ 진행 중 (${elapsedStr})`;
+            btn.className = 'workout-start-btn active';
+        }
+
+        function toggleWorkoutTimer() {
+            if (sessionEndTime) return; // Already finished
+            if (sessionStartTime) {
+                if (confirm('운동 타이머를 초기화하시겠습니까?')) {
+                    sessionStartTime = null;
+                    clearInterval(mainTimerInterval);
+                    try { localStorage.removeItem('wm_session'); } catch (e) { }
+                    updateMainTimerDisplay();
+                }
+            } else {
+                sessionStartTime = new Date();
+                try { localStorage.setItem('wm_session', JSON.stringify({ ts: sessionStartTime.getTime() })); } catch (e) { }
+                updateMainTimerDisplay();
+                mainTimerInterval = setInterval(updateMainTimerDisplay, 60000);
+            }
+        }
+
+        // Initialize session
+        (function initSession() {
+            try {
+                const saved = localStorage.getItem('wm_session');
+                const finished = localStorage.getItem('wm_session_finished');
+                const HOURS_12 = 12 * 60 * 60 * 1000;
+
+                if (finished) {
+                    const data = JSON.parse(finished);
+                    if (Date.now() - data.endTs < HOURS_12) {
+                        sessionStartTime = new Date(data.startTs);
+                        sessionEndTime = new Date(data.endTs);
+                    } else {
+                        localStorage.removeItem('wm_session_finished');
+                    }
+                } else if (saved) {
+                    const data = JSON.parse(saved);
+                    if (Date.now() - data.ts < HOURS_12) {
+                        sessionStartTime = new Date(data.ts);
+                        mainTimerInterval = setInterval(updateMainTimerDisplay, 60000);
+                    } else {
+                        localStorage.removeItem('wm_session');
+                    }
+                }
+            } catch (e) { }
+            updateMainTimerDisplay();
+        })();
 
         // ===== DAILY TIPS =====
         const dailyTips = {
@@ -2145,8 +2195,16 @@
                 }
             });
 
-            // Reset session for next workout
-            try { localStorage.removeItem('wm_session'); } catch (e) { }
+            // 기록 시 종료 상태를 저장
+            if (sessionStartTime) {
+                sessionEndTime = now;
+                clearInterval(mainTimerInterval);
+                try {
+                    localStorage.setItem('wm_session_finished', JSON.stringify({ startTs: sessionStartTime.getTime(), endTs: now.getTime() }));
+                    localStorage.removeItem('wm_session');
+                } catch (e) { }
+                updateMainTimerDisplay();
+            }
         }
     </script>
 
