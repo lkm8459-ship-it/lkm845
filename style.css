@@ -1,0 +1,1018 @@
+:root {
+    --bg: #0a0c10;
+    --card: rgba(255, 255, 255, 0.05);
+    --blue: #00d2ff;
+    --green: #39ff14;
+    --purple: #bc13fe;
+    --orange: #ff6b35;
+    --text1: #fff;
+    --text2: #8b92a0;
+    --border: rgba(255, 255, 255, 0.08);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    background: var(--bg);
+    color: var(--text1);
+    font-family: 'Outfit', sans-serif;
+    line-height: 1.5;
+    padding-bottom: 120px;
+    /* 스톱워치 공간 확보 */
+}
+
+/* Floating Stopwatch */
+.timer-bar {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 30px);
+    max-width: 420px;
+    background: rgba(255, 255, 255, 0.08);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 10px 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
+
+.timer-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    justify-content: center;
+}
+
+.timer-display {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 800;
+    font-size: 1.8rem;
+    color: var(--blue);
+    min-width: 75px;
+    text-align: center;
+}
+
+.timer-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    color: var(--text1);
+    padding: 8px 14px;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.timer-btn.start {
+    color: var(--green);
+    border-color: rgba(57, 255, 20, 0.3);
+}
+
+.timer-btn.reset {
+    color: var(--text2);
+}
+
+.timer-btn.preset {
+    background: rgba(0, 210, 255, 0.1);
+    color: var(--blue);
+    border-color: rgba(0, 210, 255, 0.2);
+}
+
+.timer-btn.report {
+    background: rgba(188, 19, 254, 0.1);
+    color: var(--purple);
+    border-color: rgba(188, 19, 254, 0.2);
+    margin-left: 5px;
+}
+
+@keyframes glow {
+    0% {
+        box-shadow: 0 0 5px rgba(0, 210, 255, 0.2);
+    }
+
+    50% {
+        box-shadow: 0 0 20px rgba(0, 210, 255, 0.5);
+    }
+
+    100% {
+        box-shadow: 0 0 5px rgba(0, 210, 255, 0.2);
+    }
+}
+
+.timer-bar.alarm {
+    animation: glow 2s ease-in-out infinite;
+    border-color: var(--blue);
+    background: rgba(0, 210, 255, 0.15);
+}
+
+.timer-bar.alarm .timer-display {
+    color: #fff;
+    text-shadow: 0 0 10px var(--blue);
+}
+
+/* Header */
+.header {
+    text-align: center;
+    padding: 35px 20px 20px;
+}
+
+.header h1 {
+    font-size: 2.8rem;
+    letter-spacing: 2px;
+    font-weight: 800;
+    background: linear-gradient(to right, var(--blue), var(--purple));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    text-transform: uppercase;
+}
+
+.header p {
+    color: var(--text2);
+    font-size: 1.1rem;
+    margin-top: 8px;
+}
+
+/* Alert */
+.alert {
+    margin: 0 15px 15px;
+    padding: 12px 15px;
+    background: rgba(188, 19, 254, 0.08);
+    border: 1px solid rgba(188, 19, 254, 0.2);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.alert .icon {
+    font-size: 1.3rem;
+}
+
+.alert .txt {
+    font-size: 1rem;
+    line-height: 1.4;
+}
+
+.alert .txt b {
+    color: var(--purple);
+}
+
+/* Tab Bar - Fixed at top for easy access */
+.tab-bar {
+    display: flex;
+    gap: 12px;
+    padding: 15px 20px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(10, 12, 16, 0.95);
+    backdrop-filter: blur(10px);
+    scrollbar-width: none;
+}
+
+.tab-bar::-webkit-scrollbar {
+    display: none;
+}
+
+.tab-bar button {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text2);
+    padding: 12px 22px;
+    border-radius: 14px;
+    white-space: nowrap;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.tab-bar button.on {
+    background: var(--blue);
+    color: #000;
+    border-color: var(--blue);
+    box-shadow: 0 0 12px rgba(0, 210, 255, 0.35);
+}
+
+/* Content */
+.page {
+    display: none;
+    padding: 15px;
+    animation: fadeUp .35s ease;
+}
+
+.page.on {
+    display: block;
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(8px)
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0)
+    }
+}
+
+.day-title {
+    font-size: 1.15rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.day-sub {
+    font-size: 0.78rem;
+    color: var(--text2);
+    margin-bottom: 18px;
+}
+
+/* Exercise Card */
+.ex {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 12px;
+}
+
+.ex.main {
+    border-left: 3px solid var(--blue);
+}
+
+.ex.super {
+    border-left: 3px solid var(--green);
+}
+
+.ex-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.ex-label {
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-bottom: 6px;
+}
+
+.ex-label.m {
+    background: rgba(0, 210, 255, 0.15);
+    color: var(--blue);
+}
+
+.ex-label.s {
+    background: rgba(57, 255, 20, 0.12);
+    color: var(--green);
+}
+
+.ex-name {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--text1);
+}
+
+.ex-target {
+    font-size: 0.95rem;
+    color: var(--text2);
+    margin-top: 4px;
+}
+
+.ex-stats {
+    text-align: right;
+}
+
+.ex-sets {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--blue);
+}
+
+.ex-rest {
+    font-size: 0.9rem;
+    color: var(--text2);
+    margin-top: 4px;
+}
+
+/* Set tracker dots */
+.dots {
+    display: flex;
+    gap: 12px;
+    margin: 20px 0;
+}
+
+.dot {
+    width: var(--dot-size, 52px);
+    height: var(--dot-size, 52px);
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: var(--dot-font, 1.2rem);
+    color: var(--text2);
+    cursor: pointer;
+    transition: 0.2s;
+    user-select: none;
+}
+
+.dot.done {
+    background: var(--green);
+    border-color: var(--green);
+    color: #000;
+    box-shadow: 0 0 8px rgba(57, 255, 20, 0.3);
+}
+
+/* Tip */
+.tip {
+    font-size: 0.75rem;
+    color: var(--text2);
+    background: rgba(0, 0, 0, 0.25);
+    padding: 8px 10px;
+    border-radius: 10px;
+    margin-top: 10px;
+}
+
+.tip b {
+    color: var(--green);
+}
+
+/* Superset connector */
+.ss-group {
+    position: relative;
+    padding-left: 14px;
+    border-left: 2px dashed rgba(57, 255, 20, 0.25);
+    margin-bottom: 12px;
+}
+
+.ss-tag {
+    font-size: 0.65rem;
+    color: var(--green);
+    font-weight: 600;
+    margin-bottom: 6px;
+    padding-left: 2px;
+}
+
+/* Cardio */
+.cardio {
+    background: linear-gradient(135deg, rgba(0, 210, 255, 0.06), rgba(188, 19, 254, 0.06));
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px;
+    margin-top: 18px;
+}
+
+.cardio h4 {
+    font-size: 0.9rem;
+    color: var(--blue);
+    margin-bottom: 6px;
+}
+
+.cardio p {
+    font-size: 0.78rem;
+    color: var(--text2);
+}
+
+/* Recovery day */
+.recovery-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.recovery-item .ri-icon {
+    font-size: 1.3rem;
+}
+
+.recovery-item .ri-text h4 {
+    font-size: 0.9rem;
+}
+
+.recovery-item .ri-text p {
+    font-size: 0.72rem;
+    color: var(--text2);
+}
+
+/* YouTube Link Button */
+.yt-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 6px;
+    padding: 5px 12px;
+    background: rgba(255, 0, 0, 0.12);
+    border: 1px solid rgba(255, 0, 0, 0.25);
+    border-radius: 8px;
+    color: #ff4444;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.2s;
+}
+
+.yt-link:active {
+    background: rgba(255, 0, 0, 0.25);
+    transform: scale(0.97);
+}
+
+/* Responsive Scaling for Fold 7 Cover Screen & Normal Phones */
+@media (max-width: 480px) {
+    :root {
+        --dot-size: 44px;
+        --dot-font: 1.1rem;
+    }
+
+    .header h1 {
+        font-size: 2.22rem;
+    }
+
+    .header p {
+        font-size: 0.95rem;
+    }
+
+    .tab-bar button {
+        padding: 10px 18px;
+        font-size: 0.9rem;
+    }
+
+    .ex-name {
+        font-size: 1.25rem;
+    }
+
+    .ex-sets {
+        font-size: 1.1rem;
+    }
+
+    .dot {
+        width: var(--dot-size);
+        height: var(--dot-size);
+        font-size: var(--dot-font);
+    }
+
+    .timer-display {
+        font-size: 1.7rem;
+        min-width: 90px;
+    }
+
+    .timer-btn {
+        padding: 8px 14px;
+        font-size: 0.85rem;
+    }
+}
+
+@media (min-width: 481px) {
+    :root {
+        --dot-size: 56px;
+        --dot-font: 1.3rem;
+    }
+}
+
+/* Final Action Button at bottom of page */
+.page-footer {
+    margin-top: 30px;
+    padding: 0 15px 40px;
+    text-align: center;
+}
+
+.final-btn {
+    display: block;
+    width: 100%;
+    padding: 18px;
+    margin-top: 10px;
+    margin-bottom: 80px;
+    background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%);
+    background: linear-gradient(45deg, #FF6B35, #FFB88C, #FF6B35);
+    background-size: 200% auto;
+    border: none;
+    border-radius: 24px;
+    color: #fff;
+    font-size: 1.4rem;
+    font-weight: 900;
+    letter-spacing: 1px;
+    cursor: pointer;
+    box-shadow: 0 10px 30px rgba(255, 107, 53, 0.4);
+    transition: all 0.3s ease;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    animation: shine 3s infinite;
+}
+
+@keyframes shine {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.final-btn:active {
+    transform: scale(0.95);
+    box-shadow: 0 5px 15px rgba(255, 107, 53, 0.3);
+}
+
+/* V2.2: Workout Timer */
+.time-badge-bar {
+    display: flex;
+    justify-content: center;
+    padding: 0 15px 15px;
+}
+
+.workout-start-btn {
+    background: linear-gradient(135deg, rgba(57, 255, 20, 0.12), rgba(57, 255, 20, 0.05));
+    border: 1px solid rgba(57, 255, 20, 0.4);
+    border-radius: 24px;
+    padding: 16px 20px;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #39ff14;
+    text-shadow: 0 0 8px rgba(57, 255, 20, 0.4);
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(57, 255, 20, 0.15), inset 0 2px 15px rgba(57, 255, 20, 0.05);
+    transition: all 0.3s cubic-bezier(0.25, 1.0, 0.5, 1.0);
+    width: 100%;
+    max-width: 320px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    letter-spacing: 0.5px;
+    backdrop-filter: blur(5px);
+}
+
+.workout-start-btn:active {
+    transform: scale(0.96);
+}
+
+.workout-start-btn.active {
+    background: linear-gradient(135deg, rgba(0, 210, 255, 0.15), rgba(188, 19, 254, 0.15));
+    border-color: rgba(0, 210, 255, 0.4);
+    color: #fff;
+    text-shadow: none;
+    box-shadow: 0 8px 25px rgba(0, 210, 255, 0.2), 0 0 15px rgba(188, 19, 254, 0.1);
+}
+
+.workout-start-btn.active span {
+    color: #00d2ff;
+    font-weight: 600;
+}
+
+.glow-icon {
+    animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+    0% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 2px #00d2ff);
+    }
+
+    50% {
+        transform: scale(1.1);
+        filter: drop-shadow(0 0 8px #00d2ff);
+    }
+
+    100% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 2px #00d2ff);
+    }
+}
+
+/* V2: Weight Modal */
+.weight-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    z-index: 2000;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 15vh;
+}
+
+.weight-modal {
+    background: #1a1d24;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 24px;
+    width: 280px;
+    text-align: center;
+}
+
+.weight-modal h3 {
+    font-size: 1rem;
+    margin-bottom: 4px;
+}
+
+.weight-modal .wm-set {
+    font-size: 0.8rem;
+    color: var(--text2);
+    margin-bottom: 16px;
+}
+
+.weight-modal input {
+    width: 100%;
+    padding: 14px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+    font-size: 1.6rem;
+    font-weight: 800;
+    text-align: center;
+    font-family: 'Outfit', sans-serif;
+    outline: none;
+}
+
+.weight-modal input:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 10px rgba(0, 210, 255, 0.2);
+}
+
+.weight-modal .wm-unit {
+    font-size: 0.8rem;
+    color: var(--text2);
+    margin-top: 6px;
+}
+
+.weight-modal .wm-btns {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.weight-modal .wm-btns button {
+    flex: 1;
+    padding: 12px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border: none;
+    font-family: 'Outfit', sans-serif;
+}
+
+.wm-btns .wm-cancel {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text2);
+}
+
+.wm-btns .wm-ok {
+    background: var(--blue);
+    color: #000;
+}
+
+.dot .dot-kg {
+    display: block;
+    font-size: 0.55rem;
+    font-weight: 600;
+    color: var(--blue);
+    margin-top: 1px;
+    line-height: 1;
+}
+
+.dot.done .dot-kg {
+    color: #000;
+}
+
+/* V2: Pullup Counter */
+.pullup-fab {
+    position: fixed;
+    bottom: 110px;
+    right: 15px;
+    z-index: 999;
+    background: rgba(188, 19, 254, 0.15);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(188, 19, 254, 0.3);
+    border-radius: 18px;
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.pullup-fab .pf-label {
+    font-size: 0.6rem;
+    color: var(--purple);
+    font-weight: 600;
+    letter-spacing: 1px;
+}
+
+.pullup-fab .pf-count {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #fff;
+    line-height: 1;
+}
+
+.pullup-fab .pf-btns {
+    display: flex;
+    gap: 6px;
+}
+
+.pullup-fab .pf-btn {
+    padding: 6px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(188, 19, 254, 0.3);
+    background: rgba(188, 19, 254, 0.1);
+    color: var(--purple);
+    font-weight: 700;
+    font-size: 0.8rem;
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+}
+
+.pullup-fab .pf-btn:active {
+    transform: scale(0.92);
+}
+
+.pullup-fab .pf-reset {
+    font-size: 0.6rem;
+    color: var(--text2);
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-family: 'Outfit', sans-serif;
+    margin-top: 2px;
+}
+
+/* V2: Cardio Input */
+.cardio-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.cardio-input-wrap label {
+    font-size: 0.8rem;
+    color: var(--text2);
+}
+
+.cardio-input {
+    width: 70px;
+    padding: 8px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--blue);
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-align: center;
+    font-family: 'Outfit', sans-serif;
+    outline: none;
+}
+
+.cardio-input:focus {
+    border-color: var(--blue);
+}
+
+.cardio-input-wrap .ci-unit {
+    font-size: 0.85rem;
+    color: var(--text2);
+    font-weight: 600;
+}
+
+/* V2: Pullup Challenge (Saturday) */
+.pullup-challenge {
+    margin-bottom: 12px;
+}
+
+.grip-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.grip-tab {
+    flex: 1;
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--text2);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    font-family: 'Outfit', sans-serif;
+}
+
+.grip-tab.active {
+    background: var(--purple);
+    color: #fff;
+    border-color: var(--purple);
+}
+
+.challenge-sets {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.challenge-set {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+}
+
+.cs-num {
+    font-weight: 800;
+    color: var(--purple);
+    font-size: 1rem;
+    min-width: 30px;
+}
+
+.cs-input {
+    width: 60px;
+    padding: 8px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-align: center;
+    font-family: 'Outfit', sans-serif;
+    outline: none;
+}
+
+.cs-input:focus {
+    border-color: var(--purple);
+}
+
+.cs-label {
+    font-size: 0.8rem;
+    color: var(--text2);
+}
+
+.cs-total {
+    text-align: center;
+    margin-top: 12px;
+    padding: 14px;
+    background: rgba(188, 19, 254, 0.08);
+    border: 1px solid rgba(188, 19, 254, 0.2);
+    border-radius: 14px;
+}
+
+.cs-total .cst-num {
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--purple);
+}
+
+.cs-total .cst-label {
+    font-size: 0.8rem;
+    color: var(--text2);
+}
+
+/* V2.1: Big Pullup Counter Page */
+.pullup-page {
+    text-align: center;
+    padding: 20px 15px;
+}
+
+.pullup-big-count {
+    font-size: 8rem;
+    font-weight: 900;
+    color: #fff;
+    line-height: 1;
+    margin: 20px 0 10px;
+    text-shadow: 0 0 30px rgba(188, 19, 254, 0.4);
+    transition: transform 0.15s;
+}
+
+.pullup-big-label {
+    font-size: 1.1rem;
+    color: var(--text2);
+    margin-bottom: 30px;
+}
+
+.pullup-big-btns {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.pullup-big-btn {
+    width: 80px;
+    height: 80px;
+    border-radius: 20px;
+    border: 2px solid rgba(188, 19, 254, 0.4);
+    background: rgba(188, 19, 254, 0.12);
+    color: var(--purple);
+    font-size: 1.6rem;
+    font-weight: 800;
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    user-select: none;
+}
+
+.pullup-big-btn:active {
+    transform: scale(0.9);
+    background: rgba(188, 19, 254, 0.3);
+}
+
+.pullup-big-btn.minus {
+    border-color: rgba(255, 68, 68, 0.3);
+    background: rgba(255, 68, 68, 0.08);
+    color: #ff4444;
+}
+
+.pullup-big-btn.minus:active {
+    background: rgba(255, 68, 68, 0.25);
+}
+
+.pullup-big-btn.reset-btn {
+    width: auto;
+    height: auto;
+    padding: 12px 24px;
+    font-size: 0.9rem;
+    border-color: var(--border);
+    color: var(--text2);
+    background: var(--card);
+}
+
+.pullup-history {
+    margin-top: 20px;
+}
+
+.pullup-history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 16px;
+    margin-bottom: 6px;
+    font-size: 0.85rem;
+}
+
+.pullup-history-item .phi-time {
+    color: var(--text2);
+}
+
+.pullup-history-item .phi-count {
+    color: var(--purple);
+    font-weight: 700;
+}
+
+/* V2: Recovery warning */
+.rest-warning {
+    background: rgba(255, 107, 53, 0.08);
+    border: 1px solid rgba(255, 107, 53, 0.2);
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+    font-size: 0.8rem;
+    color: var(--orange);
+    text-align: center;
+}
