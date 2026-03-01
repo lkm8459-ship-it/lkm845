@@ -42,18 +42,13 @@ function requestNotificationPermission() {
 
 function triggerNotification(body = "휴식 끝! 다음 세트 준비하십시오.") {
     const title = "MY ROUTINE";
-    // V2.93: Dynamic Tag (타임스탬프로 고유 식별자 부여. 에러 방지 및 워치 무조건 진동)
-    const uniqueTag = "workout-rest-" + Date.now();
 
+    // V2.98: 사령관님 지침 - "튜닝의 끝은 순정. 기본 루틴을 타게 하라."
+    // 온갖 요구사항을 맞추기 위해 넣었던 복잡한 속성들(tag, renotify, silent, requireInteraction, timestamp 등)을 전면 폭파.
+    // 브라우저가 시스템에 거창한 요구를 하지 않고, 제일 평범하고 무식한 알림을 날리게 만들어 안드로이드 기본 알림 채널에 탑승시킵니다.
     const options = {
         body: body,
-        icon: "assets/icon-512.png",
-        badge: "assets/icon-512.png",
-        tag: uniqueTag, // 필수: renotify가 true일 때 시스템 충돌을 막기 위해 반드시 필요
-        renotify: true,
-        vibrate: [500, 200, 500, 200, 500, 200, 500, 200, 500, 200, 500, 200, 500],
-        silent: false, // 소리/진동 강제
-        requireInteraction: true // 사용자가 닫을 때까지 유지 (워치 알림 유지 시간 증가)
+        icon: "assets/icon-512.png"
     };
 
     // V2.93: 서비스워커를 통한 알림 전송 및 예외 처리(Fallback) 강화
@@ -679,5 +674,26 @@ function copyReport() {
         updateMainTimerDisplay();
     }
 
-    // [V2.8] 사령관님 요청: 기록은 직접 초기화하기 전까지 유지합니다.
+    // 2. [V2.95] 사령관님 명령: 오운완 클릭 시 당일 운동 기록 완벽 초기화
+    // 2-1. 운동 세트(Dot) 초기화
+    document.querySelectorAll('.page.on .dot.done').forEach(dot => {
+        dot.classList.remove('done');
+        dot.querySelector('.dot-kg')?.remove();
+    });
+    try { localStorage.removeItem('wm_checks'); } catch (e) { }
+
+    // 2-2. 유산소 입력 초기화
+    document.querySelectorAll('.page.on .cardio-input').forEach(input => input.value = '');
+    try { localStorage.removeItem('wm_cardio'); } catch (e) { }
+
+    // 2-3. 턱걸이 탭일 경우 턱걸이 카운터도 완벽 초기화
+    if (dayId === 'pullup') {
+        pullupCount = 0;
+        pullupLog = [];
+        const bigCountEl = document.getElementById('bigPullupCount');
+        if (bigCountEl) bigCountEl.textContent = 0;
+        const historyEl = document.getElementById('pullupHistory');
+        if (historyEl) historyEl.innerHTML = '';
+        saveBigPullup();
+    }
 }
