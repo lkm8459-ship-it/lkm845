@@ -36,7 +36,7 @@ function triggerNotification(body = "휴식 끝! 다음 세트 준비하십시�
         vibrate: [500, 200, 500, 200, 500, 200, 500, 200, 500, 200, 500, 200, 500]
     };
 
-    // V2.85: 모바일 시스템/핏3 연동을 위해 서비스 워커 알림 방식으로 전환
+    // V2.87: 시스템 알림창(Banner) 전달 및 시계 진동 보장
     if ('serviceWorker' in navigator && Notification.permission === "granted") {
         navigator.serviceWorker.ready.then(registration => {
             registration.showNotification(title, options);
@@ -264,7 +264,10 @@ function tog(el) {
                 if (['mon', 'wed', 'fri'].includes(pageId)) finalRest = 120;
                 else finalRest = restSeconds;
             }
-            if (finalRest) setTimer(finalRest);
+            // V2.87: 상황별 메시지 설정
+            let msg = "휴식 끝! 다음 세트 준비하십시오.";
+            if (isLastSet) msg = `✅ ${exName} 완료! 다음 운동으로 이동하십시오.`;
+            if (finalRest) setTimer(finalRest, msg);
 
             saveChecks();
             return;
@@ -306,7 +309,11 @@ function tog(el) {
             if (['mon', 'wed', 'fri'].includes(pageId)) finalRest = 120;
             else finalRest = restSeconds;
         }
-        if (finalRest) setTimer(finalRest);
+        if (finalRest) {
+            let msg = "휴식 끝! 다음 세트 준비하십시오.";
+            if (isLastSet) msg = `✅ ${exName} 완료! 다음 운동으로 이동하십시오.`;
+            setTimer(finalRest, msg);
+        }
 
         saveChecks();
     }
@@ -352,7 +359,9 @@ function confirmWeight() {
     }
 
     if (finalRest) {
-        setTimer(finalRest);
+        let msg = "휴식 끝! 다음 세트 준비하십시오.";
+        if (isLastSet) msg = `✅ ${exName} 완료! 다음 운동으로 이동하십시오.`;
+        setTimer(finalRest, msg);
     }
 
     closeWeight();
@@ -512,7 +521,7 @@ function startTimer() {
             if (seconds <= 0) {
                 stopTimer();
                 document.getElementById('timerBar').classList.add('alarm');
-                triggerNotification();
+                triggerNotification(nextNotificationMsg);
                 // 3초 후 타이머 바 리셋 (00:00으로)
                 setTimeout(() => {
                     document.getElementById('timerBar').classList.remove('alarm');
@@ -534,7 +543,14 @@ function resetTimer() {
     updateDisplay();
 }
 
-function setTimer(s) { resetTimer(); seconds = s; isCountdown = true; updateDisplay(); startTimer(); }
+function setTimer(s, nextMsg = "휴식 끝! 다음 세트 준비하십시오.") {
+    resetTimer();
+    seconds = s;
+    isCountdown = true;
+    nextNotificationMsg = nextMsg;
+    updateDisplay();
+    startTimer();
+}
 
 // ===== V2: ENHANCED REPORT =====
 function copyReport() {
@@ -609,6 +625,9 @@ function copyReport() {
     }
 
     report += "\n#오운완 #마이루틴 #독기";
+
+    // V2.87: 최종 완료 시스템 알림
+    triggerNotification("✨ 고생하셨습니다! 오늘의 작전이 완벽하게 종료되었습니다.");
 
     navigator.clipboard.writeText(report).then(() => {
         const btn = document.querySelector('.page.on .final-btn');
