@@ -39,7 +39,7 @@ function triggerNotification(body = "휴식 끝! 다음 세트 준비하십시�
         requireInteraction: true // 사용자가 닫을 때까지 유지 (워치 알림 유지 시간 증가)
     };
 
-    // V2.87: 시스템 알림창(Banner) 전달 및 시계 진동 보장
+    // V2.90: 스마트폰 직접 진동 제거 (워치 알림 전용 모드)
     if ('serviceWorker' in navigator && Notification.permission === "granted") {
         navigator.serviceWorker.ready.then(registration => {
             registration.showNotification(title, options);
