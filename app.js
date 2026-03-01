@@ -42,26 +42,34 @@ function requestNotificationPermission() {
 
 function triggerNotification(body = "휴식 끝! 다음 세트 준비하십시오.") {
     const title = "MY ROUTINE";
+    // V2.93: Dynamic Tag (타임스탬프로 고유 식별자 부여. 에러 방지 및 워치 무조건 진동)
+    const uniqueTag = "workout-rest-" + Date.now();
+
     const options = {
         body: body,
         icon: "assets/icon-512.png",
         badge: "assets/icon-512.png",
-        // tag: "workout-rest", // V2.88: tag를 제거하여 매번 새로운 알림으로 인식하게 함 (워치 진동 보장)
+        tag: uniqueTag, // 필수: renotify가 true일 때 시스템 충돌을 막기 위해 반드시 필요
         renotify: true,
         vibrate: [500, 200, 500, 200, 500, 200, 500, 200, 500, 200, 500, 200, 500],
         silent: false, // 소리/진동 강제
         requireInteraction: true // 사용자가 닫을 때까지 유지 (워치 알림 유지 시간 증가)
     };
 
-    // V2.92: 서비스워커를 통한 알림 전송 (안정성 강화)
+    // V2.93: 서비스워커를 통한 알림 전송 및 예외 처리(Fallback) 강화
     if ('serviceWorker' in navigator && Notification.permission === "granted") {
         navigator.serviceWorker.ready.then(registration => {
             registration.showNotification(title, options)
                 .then(() => console.log('알림 전송 성공:', body))
-                .catch(err => console.error('알림 전송 실패:', err));
+                .catch(err => {
+                    console.error('알림 전송 실패(크래시 발생):', err);
+                    new Notification(title, options); // 최후의 수단으로 겉단에서 띄움
+                });
+        }).catch(err => {
+            console.error('서비스워커 준비 오류:', err);
+            new Notification(title, options);
         });
     } else if (Notification.permission === "granted") {
-        // 서비스 워커가 즉시 사용 불가능할 경우 폴백
         new Notification(title, options);
     }
 }
