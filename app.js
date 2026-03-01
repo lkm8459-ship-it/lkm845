@@ -43,25 +43,38 @@ function requestNotificationPermission() {
 function triggerNotification(body = "휴식 끝! 다음 세트 준비하십시오.") {
     const title = "MY ROUTINE";
 
-    // V2.98: 사령관님 지침 - "튜닝의 끝은 순정. 기본 루틴을 타게 하라."
-    // 온갖 요구사항을 맞추기 위해 넣었던 복잡한 속성들(tag, renotify, silent, requireInteraction, timestamp 등)을 전면 폭파.
-    // 브라우저가 시스템에 거창한 요구를 하지 않고, 제일 평범하고 무식한 알림을 날리게 만들어 안드로이드 기본 알림 채널에 탑승시킵니다.
+    // V2.99: [Hybrid] Claude 용병의 '공격적 비기' + 워룸의 '안정성' 융합 엔진
+    // 1. tag & renotify: 같은 이름의 알림이 오더라도 매번 새것처럼 진동(renotify)하게 만듦
+    // 2. vibrate: 핏3가 해독하기 쉬운 '가장 단순하고 긴' 4박자 타격 (1초 진동-0.5초 휴식-1초 진동)
+    // 3. importance high: 안드로이드 OS의 멱살을 잡고 '이건 매우 중요한 알림'임을 강제 승격 (핵심 우회로)
+    // 4. requireInteraction: 워치 화면에 알림이 계속 머무르도록 유지
     const options = {
         body: body,
-        icon: "assets/icon-512.png"
+        icon: "assets/icon-512.png",
+        badge: "assets/icon-512.png",
+        tag: "workout-timer",
+        renotify: true,
+        vibrate: [1000, 500, 1000, 500],
+        silent: false,
+        requireInteraction: true,
+        data: {
+            importance: "high" // Android 시스템 알림 채널 승격 힌트
+        }
     };
 
-    // V2.93: 서비스워커를 통한 알림 전송 및 예외 처리(Fallback) 강화
+    // V2.99: 서비스워커를 통한 정밀 타격 및 예외 처리
     if ('serviceWorker' in navigator && Notification.permission === "granted") {
         navigator.serviceWorker.ready.then(registration => {
             registration.showNotification(title, options)
-                .then(() => console.log('알림 전송 성공:', body))
+                .then(() => console.log('하이브리드 알림 발송 성공:', body))
                 .catch(err => {
-                    console.error('알림 전송 실패(크래시 발생):', err);
-                    new Notification(title, options); // 최후의 수단으로 겉단에서 띄움
+                    console.error('하이브리드 전송 실패(크래시 방어):', err);
+                    // 크래시 방지용 태그 없는 폴백 (최후의 수단)
+                    const fallbackOptions = { body: body, icon: "assets/icon-512.png" };
+                    new Notification(title, fallbackOptions);
                 });
         }).catch(err => {
-            console.error('서비스워커 준비 오류:', err);
+            console.error('서비스워커 통신 지연:', err);
             new Notification(title, options);
         });
     } else if (Notification.permission === "granted") {
