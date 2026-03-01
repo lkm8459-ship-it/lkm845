@@ -5,6 +5,7 @@ let mainTimerInterval = null;
 let pullupCount = 0;
 let currentWeightDot = null;
 let wm_history = JSON.parse(localStorage.getItem('wm_history') || '{}');
+let nextNotificationMsg = "휴식 끝! 다음 세트 준비하십시오."; // V2.88: 전역 변수 선언 누락 수정
 
 // V2.7: Notification & Vibration
 function requestNotificationPermission() {
@@ -31,9 +32,11 @@ function triggerNotification(body = "휴식 끝! 다음 세트 준비하십시�
         body: body,
         icon: "assets/icon-512.png",
         badge: "assets/icon-512.png",
-        tag: "workout-rest",
+        // tag: "workout-rest", // V2.88: tag를 제거하여 매번 새로운 알림으로 인식하게 함 (워치 진동 보장)
         renotify: true,
-        vibrate: [500, 200, 500, 200, 500, 200, 500, 200, 500, 200, 500, 200, 500]
+        vibrate: [500, 200, 500, 200, 500, 200, 500, 200, 500, 200, 500, 200, 500],
+        silent: false, // 소리/진동 강제
+        requireInteraction: true // 사용자가 닫을 때까지 유지 (워치 알림 유지 시간 증가)
     };
 
     // V2.87: 시스템 알림창(Banner) 전달 및 시계 진동 보장
