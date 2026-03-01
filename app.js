@@ -1,3 +1,16 @@
+// V2.91: 사령관님 가이드 기반 서비스워커 등록 로직 (알림 핵심 기능)
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () {
+        navigator.serviceWorker.register('./sw.js')
+            .then(function (reg) {
+                console.log("Service Worker 등록 성공: ", reg.scope);
+            })
+            .catch(function (err) {
+                console.log("Service Worker 등록 실패: ", err);
+            });
+    });
+}
+
 // ===== V2 STATE =====
 let sessionStartTime = null;
 let sessionEndTime = null;

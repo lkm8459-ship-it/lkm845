@@ -15,22 +15,7 @@
 
     <!-- V2.5: PWA Setup -->
     <link rel="manifest" href="manifest.json">
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('service-worker.js').then(reg => {
-                reg.onupdatefound = () => {
-                    const installingWorker = reg.installing;
-                    installingWorker.onstatechange = () => {
-                        if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                            if (confirm('새로운 버전의 어플이 준비되었습니다. 지금 업데이트할까요?')) {
-                                window.location.reload();
-                            }
-                        }
-                    };
-                };
-            });
-        }
-    </script>
+    <!-- 서비스워커 등록 로직은 app.js에서 일괄 관리합니다 (V2.91) -->
 </head>
 
 <body>
