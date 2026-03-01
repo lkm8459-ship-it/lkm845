@@ -92,32 +92,82 @@ function updateDailyTip(day) {
 }
 
 // ===== TAB SWITCHING =====
+const TAB_ORDER = ['pullup', 'mon', 'tue', 'wed', 'thu', 'fri'];
+
+function switchTab(day) {
+    const btn = document.querySelector(`.tab-bar button[data-day="${day}"]`);
+    if (!btn) return;
+    document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('on'));
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+    btn.classList.add('on');
+    const targetPage = document.getElementById(day);
+    if (targetPage) targetPage.classList.add('on');
+    updateDailyTip(day);
+    btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    window.scrollTo(0, 0);
+    try { localStorage.setItem('wm_tab', day); } catch (e) { }
+}
+
 document.getElementById('tabBar').addEventListener('click', function (e) {
     var btn = e.target.closest('button');
     if (!btn) return;
     var day = btn.getAttribute('data-day');
-    document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('on'));
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
-    btn.classList.add('on');
-    document.getElementById(day).classList.add('on');
-    updateDailyTip(day);
-    btn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-    try { localStorage.setItem('wm_tab', day); } catch (e) { }
+    switchTab(day);
 });
 
 // Restore tab
 try {
     var saved = localStorage.getItem('wm_tab');
     if (saved && document.getElementById(saved)) {
-        document.querySelectorAll('.tab-bar button').forEach(b => b.classList.remove('on'));
-        document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
-        document.getElementById(saved).classList.add('on');
-        document.querySelector('[data-day="' + saved + '"]').classList.add('on');
+        switchTab(saved);
     }
 } catch (e) { }
 
 var activeDay = document.querySelector('.tab-bar button.on');
 if (activeDay) updateDailyTip(activeDay.getAttribute('data-day'));
+
+// ===== SWIPE NAVIGATION (v2.6) =====
+function setupSwipe() {
+    let touchStartX = 0;
+    let touchStartY = 0;
+
+    document.addEventListener('touchstart', e => {
+        // 탭바 자체에서의 스와이프는 무시 (가로 스크롤 방해 금지)
+        if (e.target.closest('#tabBar')) return;
+        // 타이머 영역이나 입력 폼 등에서는 무시
+        if (e.target.closest('.timer-bar') || e.target.closest('.weight-modal')) return;
+
+        touchStartX = e.changedTouches[0].clientX;
+        touchStartY = e.changedTouches[0].clientY;
+    }, { passive: true });
+
+    document.addEventListener('touchend', e => {
+        if (e.target.closest('#tabBar')) return;
+        if (e.target.closest('.timer-bar') || e.target.closest('.weight-modal')) return;
+
+        const touchEndX = e.changedTouches[0].clientX;
+        const touchEndY = e.changedTouches[0].clientY;
+        const dx = touchEndX - touchStartX;
+        const dy = touchEndY - touchStartY;
+
+        // 횡방향 이동 거리가 종방향보다 크고 일정 임계값(80px) 이상일 때만 전환
+        if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 80) {
+            const currentActivePage = document.querySelector('.page.on');
+            if (!currentActivePage) return;
+
+            const currentIndex = TAB_ORDER.indexOf(currentActivePage.id);
+            let nextIndex = currentIndex;
+
+            if (dx < 0) nextIndex = Math.min(currentIndex + 1, TAB_ORDER.length - 1);
+            else nextIndex = Math.max(currentIndex - 1, 0);
+
+            if (nextIndex !== currentIndex) {
+                switchTab(TAB_ORDER[nextIndex]);
+            }
+        }
+    }, { passive: true });
+}
+setupSwipe();
 
 // ===== V2: WEIGHT INPUT via DOT CLICK =====
 function tog(el) {
