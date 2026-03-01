@@ -1,9 +1,10 @@
-// V2.91: 사령관님 가이드 기반 서비스워커 등록 로직 (알림 핵심 기능)
+// V2.92: 사령관님 가이드 기반 서비스워커 등록 (즉시 활성화 및 캐시 무시 강제)
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
-        navigator.serviceWorker.register('./sw.js')
+        navigator.serviceWorker.register('./service-worker.js', { updateViaCache: 'none' })
             .then(function (reg) {
                 console.log("Service Worker 등록 성공: ", reg.scope);
+                reg.update(); // 강제 업데이트 트리거
             })
             .catch(function (err) {
                 console.log("Service Worker 등록 실패: ", err);
@@ -52,11 +53,16 @@ function triggerNotification(body = "휴식 끝! 다음 세트 준비하십시�
         requireInteraction: true // 사용자가 닫을 때까지 유지 (워치 알림 유지 시간 증가)
     };
 
-    // V2.90: 스마트폰 직접 진동 제거 (워치 알림 전용 모드)
+    // V2.92: 서비스워커를 통한 알림 전송 (안정성 강화)
     if ('serviceWorker' in navigator && Notification.permission === "granted") {
         navigator.serviceWorker.ready.then(registration => {
-            registration.showNotification(title, options);
+            registration.showNotification(title, options)
+                .then(() => console.log('알림 전송 성공:', body))
+                .catch(err => console.error('알림 전송 실패:', err));
         });
+    } else if (Notification.permission === "granted") {
+        // 서비스 워커가 즉시 사용 불가능할 경우 폴백
+        new Notification(title, options);
     }
 }
 
