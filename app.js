@@ -26,23 +26,26 @@ function requestNotificationPermission() {
 }
 
 function triggerNotification(body = "휴식 끝! 다음 세트 준비하십시오.") {
-    if (Notification.permission === "granted") {
-        try {
-            const n = new Notification("MY ROUTINE", {
-                body: body,
-                icon: "assets/icon-512.png",
-                tag: "workout-rest",
-                silent: false
-            });
-            // 3초 후 자동 폭파 로직
-            setTimeout(() => n.close(), 3000);
-        } catch (e) {
-            console.error("Notification failed", e);
-        }
+    const title = "MY ROUTINE";
+    const options = {
+        body: body,
+        icon: "assets/icon-512.png",
+        badge: "assets/icon-512.png",
+        tag: "workout-rest",
+        renotify: true,
+        vibrate: [500, 200, 500, 200, 500, 200, 500, 200, 500, 200, 500, 200, 500]
+    };
+
+    // V2.85: 모바일 시스템/핏3 연동을 위해 서비스 워커 알림 방식으로 전환
+    if ('serviceWorker' in navigator && Notification.permission === "granted") {
+        navigator.serviceWorker.ready.then(registration => {
+            registration.showNotification(title, options);
+        });
     }
-    // 웨어러블 진동 연동 - 3초간 강력한 패턴 진동 (500ms 진동, 200ms 휴식 반복)
+
+    // 스마트폰 자체 진동 - 5초 패턴 (500ms 진동, 200ms 휴식 반복)
     if (navigator.vibrate) {
-        navigator.vibrate([500, 200, 500, 200, 500, 200, 500, 200, 200]);
+        navigator.vibrate([500, 200, 500, 200, 500, 200, 500, 200, 500, 200, 500, 200, 500]);
     }
 }
 

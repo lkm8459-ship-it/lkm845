@@ -39,3 +39,16 @@ self.addEventListener('fetch', event => {
             })
     );
 });
+
+// V2.85: 서비스 워커 알림 클릭 핸들러
+self.addEventListener('notificationclick', event => {
+    event.notification.close();
+    event.waitUntil(
+        clients.matchAll({ type: 'window' }).then(clientList => {
+            if (clientList.length > 0) {
+                return clientList[0].focus();
+            }
+            return clients.openWindow('./');
+        })
+    );
+});
