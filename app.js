@@ -42,11 +42,6 @@ function triggerNotification(body = "휴식 끝! 다음 세트 준비하십시�
             registration.showNotification(title, options);
         });
     }
-
-    // 스마트폰 자체 진동 - 5초 패턴 (500ms 진동, 200ms 휴식 반복)
-    if (navigator.vibrate) {
-        navigator.vibrate([500, 200, 500, 200, 500, 200, 500, 200, 500, 200, 500, 200, 500]);
-    }
 }
 
 // V2.7: Rest Time Persistence
@@ -262,7 +257,15 @@ function tog(el) {
 
         if (isBodyweight) {
             el.classList.add('done');
-            if (!isLastSet && restSeconds) setTimer(restSeconds);
+
+            // V2.86: 요일별 마지막 세트 지능형 휴식
+            let finalRest = restSeconds;
+            if (isLastSet) {
+                if (['mon', 'wed', 'fri'].includes(pageId)) finalRest = 120;
+                else finalRest = restSeconds;
+            }
+            if (finalRest) setTimer(finalRest);
+
             saveChecks();
             return;
         }
@@ -296,7 +299,15 @@ function tog(el) {
         setTimeout(() => document.getElementById('wmInput').focus(), 100);
     } else {
         el.classList.add('done');
-        if (!isLastSet && restSeconds) setTimer(restSeconds);
+
+        // V2.86: 요일별 마지막 세트 지능형 휴식
+        let finalRest = restSeconds;
+        if (isLastSet) {
+            if (['mon', 'wed', 'fri'].includes(pageId)) finalRest = 120;
+            else finalRest = restSeconds;
+        }
+        if (finalRest) setTimer(finalRest);
+
         saveChecks();
     }
 }
@@ -331,8 +342,17 @@ function confirmWeight() {
     const dots = Array.from(exCard.querySelectorAll('.dot'));
     const isLastSet = dots.indexOf(currentWeightDot) === dots.length - 1;
 
-    if (!isLastSet && restSeconds) {
-        setTimer(restSeconds);
+    // V2.86: 요일별 마지막 세트 지능형 휴식
+    const page = currentWeightDot.closest('.page');
+    const pageId = page ? page.id : '';
+    let finalRest = restSeconds;
+    if (isLastSet) {
+        if (['mon', 'wed', 'fri'].includes(pageId)) finalRest = 120;
+        else finalRest = restSeconds;
+    }
+
+    if (finalRest) {
+        setTimer(finalRest);
     }
 
     closeWeight();
