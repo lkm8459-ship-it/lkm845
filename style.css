@@ -150,6 +150,10 @@ body {
     margin-top: 8px;
 }
 
+.icon-btn:active {
+    transform: scale(0.9);
+}
+
 /* Alert */
 .alert {
     margin: 0 15px 15px;
@@ -317,6 +321,43 @@ body {
     font-size: 0.9rem;
     color: var(--text2);
     margin-top: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+}
+
+.rest-time-input {
+    width: 45px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--purple);
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-align: center;
+    padding: 2px;
+    font-family: 'Outfit', sans-serif;
+    outline: none;
+    transition: 0.2s;
+}
+
+.rest-time-input:focus {
+    border-color: var(--purple);
+    background: rgba(188, 19, 254, 0.1);
+}
+
+/* Chrome, Safari, Edge, Opera - Remove arrows */
+.rest-time-input::-webkit-outer-spin-button,
+.rest-time-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Firefox - Remove arrows */
+.rest-time-input {
+    -moz-appearance: textfield;
+    appearance: textfield;
 }
 
 /* Set tracker dots */
@@ -643,7 +684,17 @@ body {
 .weight-modal .wm-set {
     font-size: 0.8rem;
     color: var(--text2);
-    margin-bottom: 16px;
+    margin-bottom: 12px;
+}
+
+.wm-hint {
+    font-size: 0.75rem;
+    color: #ffeb3b;
+    background: rgba(255, 235, 59, 0.1);
+    padding: 6px 12px;
+    border-radius: 10px;
+    margin-bottom: 12px;
+    display: inline-block;
 }
 
 .weight-modal input {

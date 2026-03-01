@@ -4,6 +4,67 @@ let sessionEndTime = null;
 let mainTimerInterval = null;
 let pullupCount = 0;
 let currentWeightDot = null;
+let wm_history = JSON.parse(localStorage.getItem('wm_history') || '{}');
+
+// V2.7: Notification & Vibration
+function requestNotificationPermission() {
+    if (!("Notification" in window)) {
+        alert("이 브라우저는 알림을 지원하지 않습니다.");
+        return;
+    }
+    Notification.requestPermission().then(permission => {
+        const btn = document.getElementById('btn-notification');
+        if (permission === "granted") {
+            btn.innerHTML = '🔔';
+            btn.style.color = 'var(--purple)';
+            triggerNotification("알림이 활성화되었습니다! (3초 후 닫힘)");
+        } else {
+            btn.innerHTML = '🔕';
+            btn.style.color = 'var(--text2)';
+        }
+    });
+}
+
+function triggerNotification(body = "휴식 끝! 다음 세트 준비하십시오.") {
+    if (Notification.permission === "granted") {
+        try {
+            const n = new Notification("MY ROUTINE", {
+                body: body,
+                icon: "assets/icon-512.png",
+                tag: "workout-rest",
+                silent: false
+            });
+            // 3초 후 자동 폭파 로직
+            setTimeout(() => n.close(), 3000);
+        } catch (e) {
+            console.error("Notification failed", e);
+        }
+    }
+    // 웨어러블 진동 연동 (모바일 브라우저 한정)
+    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+}
+
+// V2.7: Rest Time Persistence
+document.addEventListener('change', e => {
+    if (e.target.classList.contains('rest-time-input')) {
+        const exName = e.target.dataset.ex;
+        const val = e.target.value;
+        if (exName) {
+            let rests = JSON.parse(localStorage.getItem('wm_rests') || '{}');
+            rests[exName] = val;
+            localStorage.setItem('wm_rests', JSON.stringify(rests));
+        }
+    }
+});
+
+// Restore Rests
+(function restoreRests() {
+    let rests = JSON.parse(localStorage.getItem('wm_rests') || '{}');
+    document.querySelectorAll('.rest-time-input').forEach(input => {
+        const exName = input.dataset.ex;
+        if (exName && rests[exName]) input.value = rests[exName];
+    });
+})();
 
 function formatTime(d) {
     return (d.getHours() < 10 ? '0' : '') + d.getHours() + ':' + (d.getMinutes() < 10 ? '0' : '') + d.getMinutes();
@@ -180,16 +241,23 @@ function tog(el) {
     const page = el.closest('.page');
     const pageId = page ? page.id : '';
     const isStrengthDay = ['mon', 'wed', 'fri'].includes(pageId);
+    const exCard = el.closest('.ex');
+    const exName = exCard ? (exCard.querySelector('.ex-name')?.textContent || '') : '';
+
+    // V2.7: Auto-Rest Logic
+    const restInput = exCard?.querySelector('.rest-time-input');
+    const restSeconds = restInput ? parseInt(restInput.value) : null;
+    const dots = exCard ? Array.from(exCard.querySelectorAll('.dot')) : [];
+    const isLastSet = dots.indexOf(el) === dots.length - 1;
 
     if (isStrengthDay) {
-        const exCard = el.closest('.ex');
-        const exName = exCard ? (exCard.querySelector('.ex-name')?.textContent || '') : '';
         // 턱걸이/딥스는 자체중량 → 무게 입력 불필요
         const bodyweightExercises = ['턱걸이', '딥스'];
         const isBodyweight = bodyweightExercises.some(bw => exName.includes(bw));
 
         if (isBodyweight) {
             el.classList.add('done');
+            if (!isLastSet && restSeconds) setTimer(restSeconds);
             saveChecks();
             return;
         }
@@ -199,9 +267,19 @@ function tog(el) {
         document.getElementById('wmTitle').textContent = exName;
         document.getElementById('wmSet').textContent = '세트 ' + dotNum;
 
+        // V2.7: PR Tracker Hint
+        const hintEl = document.getElementById('wmHint');
+        const lastPR = wm_history[exName];
+        if (lastPR) {
+            hintEl.textContent = `지난 기록: ${lastPR.weight}kg (${lastPR.date})`;
+            hintEl.style.display = 'inline-block';
+        } else {
+            hintEl.textContent = '지난 기록: 없음';
+            hintEl.style.display = 'none';
+        }
+
         // 이전 세트 무게를 자동 프리필
         let prevWeight = '';
-        const dots = exCard ? Array.from(exCard.querySelectorAll('.dot')) : [];
         const myIndex = dots.indexOf(el);
         for (let i = myIndex - 1; i >= 0; i--) {
             const kg = dots[i].querySelector('.dot-kg');
@@ -213,6 +291,7 @@ function tog(el) {
         setTimeout(() => document.getElementById('wmInput').focus(), 100);
     } else {
         el.classList.add('done');
+        if (!isLastSet && restSeconds) setTimer(restSeconds);
         saveChecks();
     }
 }
@@ -220,15 +299,37 @@ function tog(el) {
 function confirmWeight() {
     if (!currentWeightDot) return;
     const val = document.getElementById('wmInput').value;
+    const exName = document.getElementById('wmTitle').textContent;
     currentWeightDot.classList.add('done');
-    // Remove old kg label if exists
     currentWeightDot.querySelector('.dot-kg')?.remove();
+
     if (val && parseFloat(val) > 0) {
         const span = document.createElement('span');
         span.className = 'dot-kg';
         span.textContent = val + 'kg';
         currentWeightDot.appendChild(span);
+
+        // V2.7: Save to PR History
+        const weight = parseFloat(val);
+        if (!wm_history[exName] || weight >= wm_history[exName].weight) {
+            const today = new Date();
+            const dateStr = (today.getMonth() + 1) + '/' + today.getDate();
+            wm_history[exName] = { weight: weight, date: dateStr };
+            localStorage.setItem('wm_history', JSON.stringify(wm_history));
+        }
     }
+
+    // Auto-rest after confirming weight
+    const exCard = currentWeightDot.closest('.ex');
+    const restInput = exCard?.querySelector('.rest-time-input');
+    const restSeconds = restInput ? parseInt(restInput.value) : null;
+    const dots = Array.from(exCard.querySelectorAll('.dot'));
+    const isLastSet = dots.indexOf(currentWeightDot) === dots.length - 1;
+
+    if (!isLastSet && restSeconds) {
+        setTimer(restSeconds);
+    }
+
     closeWeight();
     saveChecks();
 }
@@ -386,6 +487,7 @@ function startTimer() {
             if (seconds <= 0) {
                 stopTimer();
                 document.getElementById('timerBar').classList.add('alarm');
+                triggerNotification(); // V2.7: 3s auto-close notification
                 setTimeout(() => document.getElementById('timerBar').classList.remove('alarm'), 5000);
             }
         } else {
