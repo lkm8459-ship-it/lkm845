@@ -40,8 +40,10 @@ function triggerNotification(body = "휴식 끝! 다음 세트 준비하십시�
             console.error("Notification failed", e);
         }
     }
-    // 웨어러블 진동 연동 (모바일 브라우저 한정)
-    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+    // 웨어러블 진동 연동 - 3초간 강력한 패턴 진동 (500ms 진동, 200ms 휴식 반복)
+    if (navigator.vibrate) {
+        navigator.vibrate([500, 200, 500, 200, 500, 200, 500, 200, 200]);
+    }
 }
 
 // V2.7: Rest Time Persistence
@@ -487,8 +489,12 @@ function startTimer() {
             if (seconds <= 0) {
                 stopTimer();
                 document.getElementById('timerBar').classList.add('alarm');
-                triggerNotification(); // V2.7: 3s auto-close notification
-                setTimeout(() => document.getElementById('timerBar').classList.remove('alarm'), 5000);
+                triggerNotification();
+                // 3초 후 타이머 바 리셋 (00:00으로)
+                setTimeout(() => {
+                    document.getElementById('timerBar').classList.remove('alarm');
+                    resetTimer();
+                }, 3000);
             }
         } else {
             seconds++;
@@ -584,7 +590,7 @@ function copyReport() {
     navigator.clipboard.writeText(report).then(() => {
         const btn = document.querySelector('.page.on .final-btn');
         if (btn) {
-            btn.innerText = "✅ 기록이 복사되었습니다!";
+            btn.innerHTML = "✅ 기록이 복사되었습니다!<br><small>카톡에 붙여넣어 보관하세요</small>";
             btn.style.background = "var(--green)";
             setTimeout(() => { btn.innerText = "✨ 오운완!! ✨"; btn.style.background = ""; }, 2000);
         }
@@ -598,24 +604,8 @@ function copyReport() {
             localStorage.removeItem('wm_session');
             localStorage.removeItem('wm_session_finished');
         } catch (e) { }
-        updateMainTimerDisplay(); // 🏋️ 운동 시작으로 돌아감
+        updateMainTimerDisplay();
     }
 
-    // 2. 해당 요일 초록색 체크 초기화 (타이머 여부와 상관없이 무조건)
-    const activePage = document.querySelector('.page.on');
-    if (activePage) {
-        activePage.querySelectorAll('.dot.done').forEach(dot => {
-            dot.classList.remove('done');
-            dot.querySelector('.dot-kg')?.remove();
-        });
-    }
-    saveChecks(); // 로컬 스토리지에 체크 상태 해제 반영
-
-    // 3. 턱걸이 기록 초기화 (타이머 여부와 상관없이 무조건)
-    pullupCount = 0;
-    pullupLog = [];
-    const pullupCountEl = document.getElementById('bigPullupCount');
-    if (pullupCountEl) pullupCountEl.textContent = 0;
-    renderPullupHistory();
-    saveBigPullup(); // 로컬 스토리지에 턱걸이 0 반영
+    // [V2.8] 사령관님 요청: 기록은 직접 초기화하기 전까지 유지합니다.
 }

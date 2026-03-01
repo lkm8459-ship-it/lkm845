@@ -328,23 +328,24 @@ body {
 }
 
 .rest-time-input {
-    width: 45px;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid var(--border);
-    border-radius: 6px;
+    width: 40px;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(188, 19, 254, 0.3);
+    border-radius: 0;
     color: var(--purple);
-    font-size: 0.9rem;
-    font-weight: 700;
-    text-align: center;
-    padding: 2px;
+    font-size: 1rem;
+    font-weight: 800;
+    text-align: right;
+    padding: 0 4px;
     font-family: 'Outfit', sans-serif;
     outline: none;
     transition: 0.2s;
 }
 
 .rest-time-input:focus {
-    border-color: var(--purple);
-    background: rgba(188, 19, 254, 0.1);
+    border-bottom-color: var(--purple);
+    background: rgba(188, 19, 254, 0.05);
 }
 
 /* Chrome, Safari, Edge, Opera - Remove arrows */
